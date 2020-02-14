@@ -1,0 +1,220 @@
+# igarcia 2020-02
+# Version 0.5
+# Automation for Compute Optimizer Recommendations
+# Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
+# Resources to create: Lambda, CloudWatch Event, IAM Role
+# The AWS Account should be already signed up to AWS Compute Optimizer
+# IMPORTANT: your EC2 instance should endure a restart!
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template to automate the Compute Optimizer Recommendatios changes
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Stack Environment"
+        Parameters:
+          - TemplateAmbiente
+      -
+        Label:
+          default: "Compute Optimizer Auto-Changes Setup"
+        Parameters:
+          - pType
+          - pRisk
+          - pFrecuencia
+          - pHora
+          - pTagBusqueda
+          - pTagValor
+    ParameterLabels: #Define Friendly Names
+      TemplateAmbiente:
+        default: "Value for CloudFormation Resources Env Tag"
+      pFrecuencia:
+        default: "Frequency, in days"
+      pHora:
+        default: "Time"
+      pType:
+        default: "Type of Recommendations"
+      pRisk:
+        default: "Tolerable Risk"
+      pTagBusqueda:
+        default: "Selection Tag Key, sets the Tag used to identified Instances for Automation of Compute Optimizer"
+      pTagValor:
+        default: "Selection Tag Value, sets the Value of the Tag to identified instances"
+
+Parameters: #Default Parameters Values
+  TemplateAmbiente:
+    Type: String
+    Description: "Tag Env to set on CloudFormation resources"
+    Default: Test
+    MaxLength: 10
+    MinLength: 2
+    ConstraintDescription: "Set a simple Tag between 2 and 10 characters long"
+  pFrecuencia:
+    Type: Number
+    Description: "How often, in # days, the recommendations should be applied (7-30)"
+    Default: 14
+    MinValue: 7
+    MaxValue: 30
+  pHora:
+    Type: String
+    Description: "At what time, in 24 hours UTC time format ##:##, the Change will be applied"
+    Default: "6:01"
+    AllowedPattern: "^[0-2]?[0-9]:[0-5][0-9]$"
+    ConstraintDescription: "Please set a time between 0:00 a 23:59"
+  pRisk:
+    Type: Number
+    Description: "Set the tolerable Risk of the recommendation, 0 Very Low - 5 Very high, Default 2 (Low)"
+    Default: 2
+    MaxValue: 5
+    MinValue: 0
+    ConstraintDescription: "Please set a value between 0 and 5"
+  pType:
+    Type: String
+    Description: "Recommendations to apply, Underprovisioned and/or Overprovisioned"
+    Default: "Underprovisioned"
+    AllowedValues: ["Underprovisioned","Overprovisioned","Both"]
+    ConstraintDescription: "Set the recommendations to apply, you must choose at least one type."
+  pTagBusqueda:
+    Type: String
+    Description: "Tag Key that identify EC2 Instances for automation of Compute Optimizer"
+    Default: Optimized
+    MaxLength: 20
+    MinLength: 1
+    ConstraintDescription: "Set a simple Tag between 2 and 20 characters long"
+  pTagValor:
+    Type: String
+    Description: "Tag Value to identify EC2 Instances"
+    Default: Auto
+    MaxLength: 20
+    MinLength: 1
+    ConstraintDescription: "Please set a simple value without spaces"
+
+Resources:
+  TemplateRole: #Rol para ejecucion de Lambda
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Description: Rol to execute autoComputeOptimizer
+      Policies: 
+        -
+          PolicyName: !Join [ "-", [ "PolicyLambdaExec", !Ref TemplateAmbiente ] ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+        -
+          PolicyName: !Join [ "-", [ "PolicyLambdaEC2", !Ref TemplateAmbiente ] ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "ec2:*"
+                Resource: "*"
+        -
+          PolicyName: !Join [ "-", [ "PolicyLambdaComputeOptimizer", !Ref TemplateAmbiente ] ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "compute-optimizer:*"
+                Resource: "*"
+        -
+          PolicyName: !Join [ "-", [ "PolicyLambdaKMS", !Ref TemplateAmbiente ] ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:ReEncrypt*"
+                  - "kms:GenerateDataKey*"
+                  - "kms:DescribeKey"
+                  - "kms:CreateGrant"
+                  - "kms:ListGrants"
+                  - "kms:RevokeGrant"
+                Resource: "*"
+      RoleName: !Join [ "-", [ "RolforAutoComputeOptimizer", !Ref TemplateAmbiente ] ]
+      Tags:
+        - Key: Env
+          Value: !Ref TemplateAmbiente
+
+  TemplateLambda:  #Lambda que copia los backups
+    Type: AWS::Lambda::Function
+    DependsOn: TemplateRole
+    Properties:
+      Code:
+        S3Bucket: higher-artifacts
+        S3Key: "autocomputeoptimizer.zip"
+      Description: Implements the recommendations of AWS Compute Optimizer by automation
+      Environment:
+        Variables:
+          AMBIENTE: !Ref TemplateAmbiente
+          RISK: !Ref pRisk
+          TYPE: !Ref pType
+          TAGBUSQUEDA: !Ref pTagBusqueda
+          TAGVALOR: !Ref pTagValor
+      FunctionName: !Join [ "-", [ "AutoComputeOptimizerLambda", !Ref TemplateAmbiente ] ]
+      Role: !GetAtt TemplateRole.Arn
+      Timeout: 800
+      Handler: autocomputeoptimizer.lambda_handler
+      Runtime: python3.7
+      MemorySize: 256
+      Tags:
+        -
+          Key: Env
+          Value: !Ref TemplateAmbiente
+
+  TemplateEventLambda:  #Crea Event para invocar la Lambda
+    Type: AWS::Events::Rule
+    DependsOn: TemplateLambda
+    Properties:
+      Description: Invoke Lambda for Compute Optimizer Automation
+      Name: !Join [ "-", [ "AutoComputeOptimizerEvent", !Ref TemplateAmbiente ] ]
+      ScheduleExpression: !Join [ "", [ "cron(",!Select [ 1, !Split [ ":", !Ref pHora] ]," ", !Select [ 0, !Split [ ":", !Ref pHora] ], " 1/",!Ref pFrecuencia," * ? *)" ] ]
+      State: ENABLED
+      Targets:
+        -
+          Arn: !GetAtt TemplateLambda.Arn
+          Id: !Join [ "-", [!Ref TemplateAmbiente, "AutoComputeOptimizerLambda" ] ]
+
+  TemplatePermisoEventLambda: #Relaciona permisos del Event con Lambda
+    Type: AWS::Lambda::Permission
+    DependsOn: TemplateEventLambda
+    Properties:
+      FunctionName: !GetAtt TemplateLambda.Arn
+      Action: "lambda:InvokeFunction"
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt TemplateEventLambda.Arn
+
+Outputs: #Salida a mostrarse en la pantalla
+  FrequencyAutoCO:
+    Description: Frequency for Auto implement Compute Optimizer recommendations
+    Value: !Join [ "", [ "Every ", !Ref pFrecuencia, " days, at ", !Ref pHora, " UTC" ] ]
+  Recommendations:
+    Description: Type of recommendatios to implement automatically
+    Value: !Ref pType
+  TolerableRisk:
+    Description: Tolerable Risk for the Recommendations (0 = very low - 5 = very high)
+    Value: !Ref pRisk
