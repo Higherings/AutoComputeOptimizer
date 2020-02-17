@@ -6,7 +6,7 @@ You can select the frequency to check the recommendatios, set the time when shou
 
 You have to define a TAG to select the EC2 Instances affected by the Automation.
 
-> Version 0.5
+> Version 0.6
 
 ### Files:
 - autoComputeOptimizer-template.yml, CloudFormation template to Run in your account, it is already in a public S3 bucket
