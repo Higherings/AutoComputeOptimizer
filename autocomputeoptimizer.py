@@ -23,10 +23,10 @@ def review_compute_optimizer_recos(instance):
 	response = ""
 	ec2_id = instance['instanceArn'].split('/')[1] #Instance ID
 	ec2_name = instance['instanceName']
-	ec2_prev_type = instance['currentInstanceType']
 	to_do = False # Flag to determine if Instance will be examined
 
 	ec2_instance = ec2.Instance(ec2_id)
+	ec2_prev_type = ec2_instance.instance_type
 	ec2_tags = ec2_instance.tags
 	for tag in ec2_tags:
 		if tag['Key'] == TAGBUSQUEDA and tag['Value'] == TAGVALOR:
