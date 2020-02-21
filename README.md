@@ -4,9 +4,9 @@ It uses CloudFormation, Lambda, CloudWatch Events and AWS Compute Optimizer (sho
 
 You can select the frequency to check the recommendatios, set the time when should be apply and the type of recommendations: Overprovisioned, Underprovisioned or Both.
 
-You have to define a TAG to select the EC2 Instances affected by the Automation.
+You have to define a TAG to select the EC2 Instances affected by the Automation. You can set SNS Notifications for this automation.
 
-> Version 0.6
+> Version 0.9
 
 ### Files:
 - autoComputeOptimizer-template.yml, CloudFormation template to Run in your account, it is already in a public S3 bucket
@@ -35,6 +35,8 @@ https://higher-artifacts.s3.amazonaws.com/autoComputeOptimizer-template.yml
 
 - *Tolerable Risk*, select the maximum tolerable Risk of the recommendation to apply
 
+- *Email Address*, e-mail address to receive notifications of the implemmented recommendations
+
 `If you edit the template remember to use LF end of lines.`
 
 `Update KMS user policy if you find troubles starting again the instances.`
@@ -53,3 +55,5 @@ https://higher-artifacts.s3.amazonaws.com/autoComputeOptimizer-template.yml
 - A better error management
 
 - Evaluate the AutoScaling Group Recommendations
+
+- Improve SNS Notifications
