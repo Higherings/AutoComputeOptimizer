@@ -1,5 +1,5 @@
 # igarcia 2020-02
-# Version 0.7
+# Version 0.8
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
@@ -15,6 +15,7 @@ TYPE = os.environ['TYPE'] # Overprovisioned, Underprovisioned or Both
 TAGBUSQUEDA = os.environ['TAGBUSQUEDA']
 TAGVALOR = os.environ['TAGVALOR']
 TOPIC = os.environ['TOPIC']
+CORREO = os.environ['CORREO']
 
 ec2 = boto3.resource('ec2')
 co_client = boto3.client('compute-optimizer')
@@ -100,11 +101,12 @@ def lambda_handler(event, context):
 			total+=1
 			cambios = cambios + review_compute_optimizer_recos(instance)
 
-	the_topic = sns.Topic(TOPIC)
 	the_message = "Se realizaron "+cambios+" cambios con éxito de un total de "+total+" sugeridos.\nRevise el log de la Lambda para conocer las instancias afectadas."
 	print("Se realizaron {} cambios con éxito de un total de {} sugeridos.".format(cambios,total))
 	try:
-		response = the_topic.publish(Subject="AutoComputeOptimizer Notification", Message=the_message)
+		if CORREO != "not@notify.me":
+			the_topic = sns.Topic(TOPIC)
+			response = the_topic.publish(Subject="AutoComputeOptimizer Notification", Message=the_message)
 	except:
 		print(response)
 		print("Fallo al enviar mensaje por SNS.")

@@ -1,5 +1,5 @@
 # igarcia 2020-02
-# Version 0.7
+# Version 0.8
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
 # Resources to create: Lambda, CloudWatch Event, IAM Role, SNS Topic
@@ -96,7 +96,7 @@ Parameters: #Default Parameters Values
   pCorreo:
     Type: String
     Description: "E-mail address for Notifications"
-    Default: "myemail@mydomain.com"
+    Default: "not@notify.me"
     MaxLength: 50
     MinLength: 5
     ConstraintDescription: "Please write a valid e-mail address."
@@ -210,6 +210,7 @@ Resources:
           TAGBUSQUEDA: !Ref pTagBusqueda
           TAGVALOR: !Ref pTagValor
           TOPIC: !Ref TemplateSNS
+          CORREO: !Ref pCorreo
       FunctionName: !Join [ "-", [ "AutoComputeOptimizerLambda", !Ref TemplateAmbiente ] ]
       Role: !GetAtt TemplateRole.Arn
       Timeout: 800
