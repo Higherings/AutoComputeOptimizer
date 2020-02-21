@@ -1,5 +1,5 @@
 # igarcia 2020-02
-# Version 0.8
+# Version 0.9
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
@@ -16,12 +16,14 @@ TAGBUSQUEDA = os.environ['TAGBUSQUEDA']
 TAGVALOR = os.environ['TAGVALOR']
 TOPIC = os.environ['TOPIC']
 CORREO = os.environ['CORREO']
+MENSAJE = ""
 
 ec2 = boto3.resource('ec2')
 co_client = boto3.client('compute-optimizer')
 sns = boto3.resource('sns')
 
 def review_compute_optimizer_recos(instance):
+	global MENSAJE
 	cambio = 0
 	response = ""
 	ec2_id = instance['instanceArn'].split('/')[1] #Instance ID
@@ -46,6 +48,7 @@ def review_compute_optimizer_recos(instance):
 							response = ec2_instance.start()
 							response = ec2_instance.wait_until_running()
 							cambio = 1
+							MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
 							print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
 						except:
 							ec2_instance.stop()
@@ -53,6 +56,7 @@ def review_compute_optimizer_recos(instance):
 							ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
 							ec2_instance.start()
 							cambio = 0
+							MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
 							print(response)
 							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
 					elif ec2_instance.state['Name'] == 'running':
@@ -63,6 +67,7 @@ def review_compute_optimizer_recos(instance):
 							response = ec2_instance.start()
 							response = ec2_instance.wait_until_running()
 							cambio = 1
+							MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
 							print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
 						except:
 							ec2_instance.stop()
@@ -70,10 +75,12 @@ def review_compute_optimizer_recos(instance):
 							ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
 							ec2_instance.start()
 							cambio = 0
+							MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
 							print(response)
 							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
 					break #Salgo del ciclo de OPCIONES
 	else:
+		MENSAJE = MENSAJE + "Notice: Instance " + ec2_name + " have a recommendation but not the required TAG\n"
 		print("No se modificó Instancia {} - {} debido a que no tiene el TAG necesario.".format(ec2_id, ec2_name))
 
 	return cambio
@@ -81,12 +88,14 @@ def review_compute_optimizer_recos(instance):
 def lambda_handler(event, context):
 	total = 0
 	cambios = 0
+	global MENSAJE
 
 	if TYPE == "Both":
 		R_TYPE = ['Underprovisioned','Overprovisioned']
 	else:
 		R_TYPE = [TYPE]
 
+	MENSAJE = ""
 	co_recos = co_client.get_ec2_instance_recommendations(filters=[{'name':'Finding','values':R_TYPE}])
 	for instance in co_recos['instanceRecommendations']:
 		total+=1
@@ -101,11 +110,12 @@ def lambda_handler(event, context):
 			total+=1
 			cambios = cambios + review_compute_optimizer_recos(instance)
 
-	the_message = "Se realizaron "+str(cambios)+" cambios con éxito de un total de "+str(total)+" sugeridos.\nRevise el log de la Lambda para conocer las instancias afectadas."
+	the_message = "EC2 Instances updated "+str(cambios)+", of "+str(total)+" total recommendations:\n"
 	print("Se realizaron {} cambios con éxito de un total de {} sugeridos.".format(cambios,total))
 	try:
 		if CORREO != "not@notify.me":
 			the_topic = sns.Topic(TOPIC)
+			the_message = the_message + MENSAJE + "\nMore information on Lambda log."
 			response = the_topic.publish(Subject="AutoComputeOptimizer Notification", Message=the_message)
 	except:
 		print(response)
