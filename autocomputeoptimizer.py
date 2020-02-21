@@ -101,7 +101,7 @@ def lambda_handler(event, context):
 			total+=1
 			cambios = cambios + review_compute_optimizer_recos(instance)
 
-	the_message = "Se realizaron "+cambios+" cambios con éxito de un total de "+total+" sugeridos.\nRevise el log de la Lambda para conocer las instancias afectadas."
+	the_message = "Se realizaron "+str(cambios)+" cambios con éxito de un total de "+str(total)+" sugeridos.\nRevise el log de la Lambda para conocer las instancias afectadas."
 	print("Se realizaron {} cambios con éxito de un total de {} sugeridos.".format(cambios,total))
 	try:
 		if CORREO != "not@notify.me":
