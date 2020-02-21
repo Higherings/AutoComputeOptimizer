@@ -1,10 +1,10 @@
 # igarcia 2020-02
-# Version 0.6
+# Version 0.7
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
-# Resources to create: Lambda, CloudWatch Event, IAM Role
+# Resources to create: Lambda, CloudWatch Event, IAM Role, SNS Topic
 # The AWS Account should be already signed up to AWS Compute Optimizer
-# IMPORTANT: your EC2 instance should endure a restart!
+# IMPORTANT: The EC2 instances that you want to affect should endure a restart!
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: Template to automate the Compute Optimizer Recommendatios changes
@@ -27,6 +27,7 @@ Metadata:
           - pHora
           - pTagBusqueda
           - pTagValor
+          - pCorreo
     ParameterLabels: #Define Friendly Names
       TemplateAmbiente:
         default: "Value for CloudFormation Resources Env Tag"
@@ -42,6 +43,8 @@ Metadata:
         default: "Selection Tag Key, sets the Tag used to identified Instances for Automation of Compute Optimizer"
       pTagValor:
         default: "Selection Tag Value, sets the Value of the Tag to identified instances"
+      pCorreo:
+        default: "E-Mail Address to receive Notifications about changes applied. Leave default value for NO Notifications."
 
 Parameters: #Default Parameters Values
   TemplateAmbiente:
@@ -90,10 +93,31 @@ Parameters: #Default Parameters Values
     MaxLength: 20
     MinLength: 1
     ConstraintDescription: "Please set a simple value without spaces"
+  pCorreo:
+    Type: String
+    Description: "E-mail address for Notifications"
+    Default: "myemail@mydomain.com"
+    MaxLength: 50
+    MinLength: 5
+    ConstraintDescription: "Please write a valid e-mail address."
 
 Resources:
-  TemplateRole: #Rol para ejecucion de Lambda
+  TemplateSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Join [ "-", [ "AutoComputeOptimizerTopic", !Ref TemplateAmbiente ] ]
+      TopicName: !Join [ "-", [ "AutoComputeOptimizerTopic", !Ref TemplateAmbiente ] ]
+      Subscription:
+        -
+          Endpoint: !Ref pCorreo
+          Protocol: email
+      Tags:
+        - Key: Env
+          Value: !Ref TemplateAmbiente
+
+  TemplateRole: #Role for Lambda
     Type: AWS::IAM::Role
+    DependsOn: TemplateSNS
     Properties: 
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -139,6 +163,16 @@ Resources:
                   - "compute-optimizer:*"
                 Resource: "*"
         -
+          PolicyName: !Join [ "-", [ "PolicyLambdaSNS", !Ref TemplateAmbiente ] ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "sns:*"
+                Resource: !Ref TemplateSNS
+        -
           PolicyName: !Join [ "-", [ "PolicyLambdaKMS", !Ref TemplateAmbiente ] ]
           PolicyDocument:
             Version: "2012-10-17"
@@ -160,7 +194,7 @@ Resources:
         - Key: Env
           Value: !Ref TemplateAmbiente
 
-  TemplateLambda:  #Lambda que copia los backups
+  TemplateLambda:  #Lambda to implement Recommendations
     Type: AWS::Lambda::Function
     DependsOn: TemplateRole
     Properties:
@@ -175,6 +209,7 @@ Resources:
           TYPE: !Ref pType
           TAGBUSQUEDA: !Ref pTagBusqueda
           TAGVALOR: !Ref pTagValor
+          TOPIC: !Ref TemplateSNS
       FunctionName: !Join [ "-", [ "AutoComputeOptimizerLambda", !Ref TemplateAmbiente ] ]
       Role: !GetAtt TemplateRole.Arn
       Timeout: 800
@@ -186,7 +221,7 @@ Resources:
           Key: Env
           Value: !Ref TemplateAmbiente
 
-  TemplateEventLambda:  #Crea Event para invocar la Lambda
+  TemplateEventLambda:  #Event to invoke Lambda
     Type: AWS::Events::Rule
     DependsOn: TemplateLambda
     Properties:
@@ -208,7 +243,7 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: !GetAtt TemplateEventLambda.Arn
 
-Outputs: #Salida a mostrarse en la pantalla
+Outputs: #Outputs of the Template
   FrequencyAutoCO:
     Description: Frequency for Auto implement Compute Optimizer recommendations
     Value: !Join [ "", [ "Every ", !Ref pFrecuencia, " days, at ", !Ref pHora, " UTC" ] ]
@@ -218,3 +253,6 @@ Outputs: #Salida a mostrarse en la pantalla
   TolerableRisk:
     Description: Tolerable Risk for the Recommendations (0 = very low - 5 = very high)
     Value: !Ref pRisk
+  NotificationsEmail:
+    Description: Email address for Notifications
+    Value: !Ref pCorreo
