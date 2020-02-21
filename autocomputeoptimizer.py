@@ -106,6 +106,7 @@ def lambda_handler(event, context):
 	try:
 		response = the_topic.publish(Subject="AutoComputeOptimizer Notification", Message=the_message)
 	except:
+		print(response)
 		print("Fallo al enviar mensaje por SNS.")
 	return {
 		'statusCode': 200,
