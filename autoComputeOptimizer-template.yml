@@ -129,7 +129,7 @@ Resources:
                 - "lambda.amazonaws.com"
             Action:
               - "sts:AssumeRole"
-      Description: Rol to execute autoComputeOptimizer
+      Description: Role to execute autoComputeOptimizer
       Policies: 
         -
           PolicyName: !Join [ "-", [ "PolicyLambdaExec", !Ref TemplateAmbiente ] ]
@@ -189,7 +189,7 @@ Resources:
                   - "kms:ListGrants"
                   - "kms:RevokeGrant"
                 Resource: "*"
-      RoleName: !Join [ "-", [ "RolforAutoComputeOptimizer", !Ref TemplateAmbiente ] ]
+      RoleName: !Join [ "-", [ "RoleforAutoComputeOptimizer", !Ref TemplateAmbiente ] ]
       Tags:
         - Key: Env
           Value: !Ref TemplateAmbiente
