@@ -1,4 +1,4 @@
-# igarcia 2020-02
+# igarcia 2020-04
 # Version 0.9
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
@@ -117,7 +117,6 @@ Resources:
 
   TemplateRole: #Role for Lambda
     Type: AWS::IAM::Role
-    DependsOn: TemplateSNS
     Properties: 
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -196,11 +195,10 @@ Resources:
 
   TemplateLambda:  #Lambda to implement Recommendations
     Type: AWS::Lambda::Function
-    DependsOn: TemplateRole
     Properties:
       Code:
-        S3Bucket: higher-artifacts
-        S3Key: "autocomputeoptimizer.zip"
+        S3Bucket: !Join [ "-", [ "higher-artifacts", !Ref "AWS::Region" ] ]
+        S3Key: "solutions/autocomputeoptimizer.zip"
       Description: Implements the recommendations of AWS Compute Optimizer by automation
       Environment:
         Variables:
@@ -224,7 +222,6 @@ Resources:
 
   TemplateEventLambda:  #Event to invoke Lambda
     Type: AWS::Events::Rule
-    DependsOn: TemplateLambda
     Properties:
       Description: Invoke Lambda for Compute Optimizer Automation
       Name: !Join [ "-", [ "AutoComputeOptimizerEvent", !Ref TemplateAmbiente ] ]
@@ -237,7 +234,6 @@ Resources:
 
   TemplatePermisoEventLambda: #Relaciona permisos del Event con Lambda
     Type: AWS::Lambda::Permission
-    DependsOn: TemplateEventLambda
     Properties:
       FunctionName: !GetAtt TemplateLambda.Arn
       Action: "lambda:InvokeFunction"
