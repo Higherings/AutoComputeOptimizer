@@ -1,5 +1,5 @@
 # igarcia 2020-04
-# Version 1.0
+# Version 1.0.0
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances

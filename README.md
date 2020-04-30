@@ -1,6 +1,6 @@
 # AutoComputeOptimizer
 Easy to configure automation to automatically apply AWS Compute Optimizer recommendations on EC2 instances
-It uses CloudFormation, Lambda, CloudWatch Events and AWS Compute Optimizer (should be already working on the account)
+It uses CloudFormation, Lambda (Python 3.8), CloudWatch Events and AWS Compute Optimizer (should be already working on the account)
 
 You can select the frequency to check the recommendatios, set the time when should be apply and the type of recommendations: Overprovisioned, Underprovisioned or Both.
 
@@ -8,7 +8,7 @@ You have to define a TAG to select the EC2 Instances affected by the Automation.
 
 If it's now working on your Region create an Issue and I will fix it.
 
-> Version 1.0
+> Version 1.0.0
 
 ### Files:
 - autoComputeOptimizer-template.yml, CloudFormation template to Run in your account, it is already in a public S3 bucket
