@@ -1,5 +1,5 @@
-# igarcia 2020-04
-# Version 1.0.0
+# igarcia 2020-06
+# Version 1.1.0
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
 # Resources to create: Lambda, CloudWatch Event, IAM Role, SNS Topic

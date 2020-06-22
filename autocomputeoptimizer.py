@@ -1,5 +1,5 @@
-# igarcia 2020-04
-# Version 1.0.0
+# igarcia 2020-06
+# Version 1.1.0
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
@@ -40,7 +40,7 @@ def review_compute_optimizer_recos(instance):
 	if to_do:
 		for option in instance['recommendationOptions']:
 			ec2_new_type = option['instanceType']
-			if (option['rank'] == 1) and (int(option['performanceRisk']) <= int(RISK)) and (ec2_prev_type != ec2_new_type): # Debe ser la 1ra opcion, el riesgo debe ser aceptable y el tipo de Instancia debe cambiar
+			if (int(option['performanceRisk']) <= int(RISK)) and (ec2_prev_type != ec2_new_type): # El riesgo debe ser aceptable y el tipo de Instancia debe cambiar
 				    #Hacer Cambio Tipo de Instancia
 					if ec2_instance.state['Name'] == 'stopped':
 						try:
@@ -50,6 +50,7 @@ def review_compute_optimizer_recos(instance):
 							cambio = 1
 							MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
 							print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
+							break
 						except:
 							ec2_instance.stop()
 							ec2_instance.wait_until_stopped()
@@ -59,6 +60,7 @@ def review_compute_optimizer_recos(instance):
 							MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
 							print(response)
 							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
+							break
 					elif ec2_instance.state['Name'] == 'running':
 						try:
 							response = ec2_instance.stop()
@@ -69,6 +71,7 @@ def review_compute_optimizer_recos(instance):
 							cambio = 1
 							MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
 							print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
+							break
 						except:
 							ec2_instance.stop()
 							ec2_instance.wait_until_stopped()
@@ -78,7 +81,9 @@ def review_compute_optimizer_recos(instance):
 							MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
 							print(response)
 							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
-					break #Salgo del ciclo de OPCIONES
+							break
+			else:
+				print("Opción {} recomendada no valida para instancia {} - {} ".format(ec2_new_type, ec2_id, ec2_name))
 	else:
 		MENSAJE = MENSAJE + "Notice: Instance " + ec2_name + " have a recommendation but not the required TAG\n"
 		print("No se modificó Instancia {} - {} debido a que no tiene el TAG necesario.".format(ec2_id, ec2_name))

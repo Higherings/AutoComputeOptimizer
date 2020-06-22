@@ -8,7 +8,7 @@ You have to define a TAG to select the EC2 Instances affected by the Automation.
 
 If it's now working on your Region create an Issue and I will fix it.
 
-> Version 1.0.0
+> Version 1.1.0
 
 ### Files:
 - autoComputeOptimizer-template.yml, CloudFormation template to Run in your account, it is already in a public S3 bucket
