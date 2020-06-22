@@ -6,7 +6,7 @@ You can select the frequency to check the recommendatios, set the time when shou
 
 You have to define a TAG to select the EC2 Instances affected by the Automation. You can set SNS Notifications for this automation.
 
-If it's now working on your Region create an Issue and I will fix it.
+If it's not working on your Region create an Issue and I will fix it.
 
 > Version 1.1.0
 
