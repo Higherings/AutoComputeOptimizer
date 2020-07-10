@@ -225,7 +225,7 @@ Resources:
     Properties:
       Description: Invoke Lambda for Compute Optimizer Automation
       Name: !Join [ "-", [ "AutoComputeOptimizerEvent", !Ref TemplateAmbiente ] ]
-      ScheduleExpression: !Join [ "", [ "cron(",!Select [ 1, !Split [ ":", !Ref pHora] ]," ", !Select [ 0, !Split [ ":", !Ref pHora] ], " ? "," * ",!Ref pDia," *)" ] ]
+      ScheduleExpression: !Join [ "", [ "cron(",!Select [ 1, !Split [ ":", !Ref pHora] ]," ", !Select [ 0, !Split [ ":", !Ref pHora] ], " ? ","* ",!Ref pDia," *)" ] ]
       State: ENABLED
       Targets:
         -
@@ -243,7 +243,7 @@ Resources:
 Outputs: #Outputs of the Template
   FrequencyAutoCO:
     Description: Frequency for Auto implement Compute Optimizer recommendations
-    Value: !Join [ "", [ "Every ", !Ref pDia, " days, at ", !Ref pHora, " UTC" ] ]
+    Value: !Join [ "", [ "Every ", !Ref pDia, " at ", !Ref pHora, " UTC" ] ]
   Recommendations:
     Description: Type of recommendatios to implement automatically
     Value: !Ref pType
