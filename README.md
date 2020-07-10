@@ -1,14 +1,14 @@
 # AutoComputeOptimizer
 Easy to configure automation to automatically apply AWS Compute Optimizer recommendations on EC2 instances
-It uses CloudFormation, Lambda (Python 3.8), CloudWatch Events and AWS Compute Optimizer (should be already working on the account)
+It uses CloudFormation, Lambda (Python 3.8), CloudWatch Events and AWS Compute Optimizer (Compute Optimizer should be already working on the account)
 
-You can select the frequency to check the recommendatios, set the time when should be apply and the type of recommendations: Overprovisioned, Underprovisioned or Both.
+You can select the day to check the recommendatios, set the time when should be apply and the type of recommendations: Overprovisioned, Underprovisioned or Both.
 
 You have to define a TAG to select the EC2 Instances affected by the Automation. You can set SNS Notifications for this automation.
 
 If it's not working on your Region create an Issue and I will fix it.
 
-> Version 1.1.0
+> Version 2.0.0
 
 ### Files:
 - autoComputeOptimizer-template.yml, CloudFormation template to Run in your account, it is already in a public S3 bucket
@@ -29,7 +29,7 @@ https://higher-artifacts.s3.amazonaws.com/autoComputeOptimizer-template.yml
 
 - *Selection Tag Value*, sets the Value of the Tag to identify the EC2 Instances
 
-- *Frequency*, specify how often the recommendations will be applied (in days)
+- *Day*, specify the day of the week the recommendations will be applied (Mon-Sun)
 
 - *Time*, specify at what time the changes to the EC2 Instances will occur (downtime requiered) (UTC 24 hours syntax)
 
@@ -52,7 +52,7 @@ https://higher-artifacts.s3.amazonaws.com/autoComputeOptimizer-template.yml
 - You can set a Tag Key and Value to select the group of EC2 Instances to be evaluated
 
 ## To-Do
-- Make a more restrict EC2,KMS policy for the Lambda
+- Make a more restrict EC2 and KMS policy for the Lambda
 
 - A better error management
 
