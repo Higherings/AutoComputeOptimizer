@@ -24,7 +24,7 @@ Metadata:
         Parameters:
           - pType
           - pRisk
-          - pFrecuencia
+          - pDia
           - pHora
           - pTagBusqueda
           - pTagValor
@@ -32,10 +32,10 @@ Metadata:
     ParameterLabels: #Define Friendly Names
       TemplateAmbiente:
         default: "Value for CloudFormation Resources Env Tag"
-      pFrecuencia:
-        default: "Frequency, in days"
+      pDia:
+        default: "Day of the week for Maintenance Window (restart)"
       pHora:
-        default: "Time"
+        default: "Time for the Restart in UTC"
       pType:
         default: "Type of Recommendations"
       pRisk:
@@ -55,12 +55,11 @@ Parameters: #Default Parameters Values
     MaxLength: 10
     MinLength: 2
     ConstraintDescription: "Set a simple Tag between 2 and 10 characters long"
-  pFrecuencia:
-    Type: Number
-    Description: "How often, in # days, the recommendations should be applied (7-30)"
-    Default: 14
-    MinValue: 7
-    MaxValue: 30
+  pDia:
+    Type: String
+    Description: "Day of the week to apply the Recommendation"
+    Default: "Mon"
+    AllowedValues: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
   pHora:
     Type: String
     Description: "At what time, in 24 hours UTC time format ##:##, the Change will be applied"
@@ -226,7 +225,7 @@ Resources:
     Properties:
       Description: Invoke Lambda for Compute Optimizer Automation
       Name: !Join [ "-", [ "AutoComputeOptimizerEvent", !Ref TemplateAmbiente ] ]
-      ScheduleExpression: !Join [ "", [ "cron(",!Select [ 1, !Split [ ":", !Ref pHora] ]," ", !Select [ 0, !Split [ ":", !Ref pHora] ], " 1/",!Ref pFrecuencia," * ? *)" ] ]
+      ScheduleExpression: !Join [ "", [ "cron(",!Select [ 1, !Split [ ":", !Ref pHora] ]," ", !Select [ 0, !Split [ ":", !Ref pHora] ], " ? "," * ",!Ref pDia," *)" ] ]
       State: ENABLED
       Targets:
         -
@@ -244,7 +243,7 @@ Resources:
 Outputs: #Outputs of the Template
   FrequencyAutoCO:
     Description: Frequency for Auto implement Compute Optimizer recommendations
-    Value: !Join [ "", [ "Every ", !Ref pFrecuencia, " days, at ", !Ref pHora, " UTC" ] ]
+    Value: !Join [ "", [ "Every ", !Ref pDia, " days, at ", !Ref pHora, " UTC" ] ]
   Recommendations:
     Description: Type of recommendatios to implement automatically
     Value: !Ref pType
