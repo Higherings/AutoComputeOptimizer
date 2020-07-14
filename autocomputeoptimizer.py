@@ -1,5 +1,5 @@
-# igarcia 2020-06
-# Version 1.1.0
+# igarcia 2020-07
+# Version 2.0.1
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
@@ -83,6 +83,7 @@ def review_compute_optimizer_recos(instance):
 							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
 							break
 			else:
+				MENSAJE = MENSAJE + "Note: Instance " + ec2_name + "with no valid options. \n"
 				print("Opción {} recomendada no valida para instancia {} - {} ".format(ec2_new_type, ec2_id, ec2_name))
 	else:
 		MENSAJE = MENSAJE + "Notice: Instance " + ec2_name + " have a recommendation but not the required TAG\n"
