@@ -1,5 +1,5 @@
 # igarcia 2020-07
-# Version 2.0.1
+# Version 2.0.2
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
@@ -17,6 +17,7 @@ TAGVALOR = os.environ['TAGVALOR']
 TOPIC = os.environ['TOPIC']
 CORREO = os.environ['CORREO']
 MENSAJE = ""
+risk_text = {"0":"No Risk", "1":"Very Low Risk", "2":"Low Risk", "3":"Medium Risk", "4":"High Risk", "5":"Very High Risk"}
 
 ec2 = boto3.resource('ec2')
 co_client = boto3.client('compute-optimizer')
@@ -83,8 +84,9 @@ def review_compute_optimizer_recos(instance):
 							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
 							break
 			else:
-				MENSAJE = MENSAJE + "Note: Instance " + ec2_name + "with no valid options. \n"
-				print("Opción {} recomendada no valida para instancia {} - {} ".format(ec2_new_type, ec2_id, ec2_name))
+				if response == "":
+					MENSAJE = MENSAJE + "Note: Instance " + ec2_name + "with no viable options. \n"
+				print("Opción {} recomendada no viable para instancia {} - {} ".format(ec2_new_type, ec2_id, ec2_name))
 	else:
 		MENSAJE = MENSAJE + "Notice: Instance " + ec2_name + " have a recommendation but not the required TAG\n"
 		print("No se modificó Instancia {} - {} debido a que no tiene el TAG necesario.".format(ec2_id, ec2_name))
@@ -116,12 +118,14 @@ def lambda_handler(event, context):
 			total+=1
 			cambios = cambios + review_compute_optimizer_recos(instance)
 
-	the_message = "EC2 Instances updated "+str(cambios)+", of "+str(total)+" total recommendations:\n"
+	the_message = "EC2 Instances updated "+str(cambios)+" of "+str(total)+" total recommendations:\n"
 	print("Se realizaron {} cambios con éxito de un total de {} sugeridos.".format(cambios,total))
+	print("Limite indicador de Riesgo: {}".format(risk_text[RISK]))
 	try:
 		if CORREO != "not@notify.me":
 			the_topic = sns.Topic(TOPIC)
-			the_message = the_message + MENSAJE + "\nMore information on Lambda log."
+			the_message = the_message + MENSAJE
+			the_message = the_message + "\nRisk threshold to change instance type: " + risk_text[RISK] + "." + "\nMore information on Lambda log."
 			response = the_topic.publish(Subject="AutoComputeOptimizer Notification", Message=the_message)
 	except:
 		print(response)
