@@ -42,51 +42,52 @@ def review_compute_optimizer_recos(instance):
 		for option in instance['recommendationOptions']:
 			ec2_new_type = option['instanceType']
 			if (int(option['performanceRisk']) <= int(RISK)) and (ec2_prev_type != ec2_new_type): # El riesgo debe ser aceptable y el tipo de Instancia debe cambiar
-				    #Hacer Cambio Tipo de Instancia
-					if ec2_instance.state['Name'] == 'stopped':
-						try:
-							response = ec2_instance.modify_attribute(InstanceType={'Value':ec2_new_type})
-							response = ec2_instance.start()
-							response = ec2_instance.wait_until_running()
-							cambio = 1
-							MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
-							print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
-							break
-						except:
-							ec2_instance.stop()
-							ec2_instance.wait_until_stopped()
-							ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
-							ec2_instance.start()
-							cambio = 0
-							MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
-							print(response)
-							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
-							break
-					elif ec2_instance.state['Name'] == 'running':
-						try:
-							response = ec2_instance.stop()
-							response = ec2_instance.wait_until_stopped()
-							response = ec2_instance.modify_attribute(InstanceType={'Value':ec2_new_type})
-							response = ec2_instance.start()
-							response = ec2_instance.wait_until_running()
-							cambio = 1
-							MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
-							print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
-							break
-						except:
-							ec2_instance.stop()
-							ec2_instance.wait_until_stopped()
-							ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
-							ec2_instance.start()
-							cambio = 0
-							MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
-							print(response)
-							print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
-							break
+			    #Hacer Cambio Tipo de Instancia
+				if ec2_instance.state['Name'] == 'stopped':
+					try:
+						response = ec2_instance.modify_attribute(InstanceType={'Value':ec2_new_type})
+						response = ec2_instance.start()
+						response = ec2_instance.wait_until_running()
+						cambio = 1
+						MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
+						print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
+						break
+					except:
+						ec2_instance.stop()
+						ec2_instance.wait_until_stopped()
+						ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
+						ec2_instance.start()
+						cambio = 0
+						MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
+						print(response)
+						print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
+						break
+				elif ec2_instance.state['Name'] == 'running':
+					try:
+						response = ec2_instance.stop()
+						response = ec2_instance.wait_until_stopped()
+						response = ec2_instance.modify_attribute(InstanceType={'Value':ec2_new_type})
+						response = ec2_instance.start()
+						response = ec2_instance.wait_until_running()
+						cambio = 1
+						MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
+						print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
+						break
+					except:
+						ec2_instance.stop()
+						ec2_instance.wait_until_stopped()
+						ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
+						ec2_instance.start()
+						cambio = 0
+						MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
+						print(response)
+						print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
+						break
 			else:
-				if response == "":
-					MENSAJE = MENSAJE + "Note: Instance " + ec2_name + "with no viable options. \n"
 				print("Opción {} recomendada no viable para instancia {} - {} ".format(ec2_new_type, ec2_id, ec2_name))
+
+		if response == "":
+			MENSAJE = MENSAJE + "Note: Instance " + ec2_name + " with no viable options. \n"
 	else:
 		MENSAJE = MENSAJE + "Notice: Instance " + ec2_name + " have a recommendation but not the required TAG\n"
 		print("No se modificó Instancia {} - {} debido a que no tiene el TAG necesario.".format(ec2_id, ec2_name))
