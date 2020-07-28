@@ -49,7 +49,7 @@ def review_compute_optimizer_recos(instance):
 						response = ec2_instance.start()
 						response = ec2_instance.wait_until_running()
 						cambio = 1
-						MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
+						MENSAJE = MENSAJE + "Info:   Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
 						print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
 						break
 					except:
@@ -58,7 +58,7 @@ def review_compute_optimizer_recos(instance):
 						ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
 						ec2_instance.start()
 						cambio = 0
-						MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
+						MENSAJE = MENSAJE + "Error:  Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
 						print(response)
 						print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
 						break
@@ -70,7 +70,7 @@ def review_compute_optimizer_recos(instance):
 						response = ec2_instance.start()
 						response = ec2_instance.wait_until_running()
 						cambio = 1
-						MENSAJE = MENSAJE + "Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
+						MENSAJE = MENSAJE + "Info:   Instance " + ec2_name + " changed to " + ec2_new_type + "\n"
 						print("Se modificó Instancia {} - {} de {} a tipo {} ".format(ec2_id, ec2_name, ec2_prev_type, ec2_new_type))
 						break
 					except:
@@ -79,7 +79,7 @@ def review_compute_optimizer_recos(instance):
 						ec2_instance.modify_attribute(InstanceType={'Value':ec2_prev_type})
 						ec2_instance.start()
 						cambio = 0
-						MENSAJE = MENSAJE + "Fail: Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
+						MENSAJE = MENSAJE + "Error:  Instance " + ec2_name + " NOT changed to " + ec2_new_type + "\n"
 						print(response)
 						print("No se puedo modificar Instancia {} - {} a tipo {} ".format(ec2_id, ec2_name, ec2_new_type))
 						break
@@ -87,9 +87,9 @@ def review_compute_optimizer_recos(instance):
 				print("Opción {} recomendada no viable para instancia {} - {} ".format(ec2_new_type, ec2_id, ec2_name))
 
 		if response == "":
-			MENSAJE = MENSAJE + "Note: Instance " + ec2_name + " with no viable options. \n"
+			MENSAJE = MENSAJE + "Info:   Instance " + ec2_name + " with no viable options. \n"
 	else:
-		MENSAJE = MENSAJE + "Notice: Instance " + ec2_name + " have a recommendation but not the required TAG\n"
+		MENSAJE = MENSAJE + "Info:   Instance " + ec2_name + " have a recommendation but not the required TAG\n"
 		print("No se modificó Instancia {} - {} debido a que no tiene el TAG necesario.".format(ec2_id, ec2_name))
 
 	return cambio
@@ -126,7 +126,7 @@ def lambda_handler(event, context):
 		if CORREO != "not@notify.me":
 			the_topic = sns.Topic(TOPIC)
 			the_message = the_message + MENSAJE
-			the_message = the_message + "\nRisk threshold to change instance type: " + risk_text[RISK] + "." + "\nMore information on Lambda log."
+			the_message = the_message + "\nDefined risk threshold to change instance type: " + risk_text[RISK] + "." + "\nMore information on Lambda log."
 			response = the_topic.publish(Subject="AutoComputeOptimizer Notification", Message=the_message)
 	except:
 		print(response)
