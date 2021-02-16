@@ -1,10 +1,13 @@
 # igarcia 2020-07
-# Version 2.0.2
+# Version 2.1.0
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
 # You can set a TAG Value for the instances that this Lambda can manage
 # IMPORTANT: your EC2 instance should endure a restart!
+
+# UPDATE
+# Now you can override the behaviour per instance with TAGBUSQUEDA's values of ACOO-OVER, ACOO-UNDER, ACOO-BOTH
 
 import os
 import json
@@ -17,6 +20,7 @@ TAGVALOR = os.environ['TAGVALOR']
 TOPIC = os.environ['TOPIC']
 CORREO = os.environ['CORREO']
 MENSAJE = ""
+OVERRIDES = ("ACOO-OVER","ACOO-UNDER","ACOO-BOTH")
 risk_text = {"0":"No Risk", "1":"Very Low Risk", "2":"Low Risk", "3":"Medium Risk", "4":"High Risk", "5":"Very High Risk"}
 
 ec2 = boto3.resource('ec2')
@@ -30,14 +34,33 @@ def review_compute_optimizer_recos(instance):
 	ec2_id = instance['instanceArn'].split('/')[1] #Instance ID
 	ec2_name = instance['instanceName']
 	to_do = False # Flag to determine if Instance will be examined
+	tag_value = "" # To check for overrides
 
 	ec2_instance = ec2.Instance(ec2_id)
 	ec2_prev_type = ec2_instance.instance_type
 	ec2_tags = ec2_instance.tags
 	for tag in ec2_tags:
-		if tag['Key'] == TAGBUSQUEDA and tag['Value'] == TAGVALOR:
+		if tag['Key'] == TAGBUSQUEDA:
+			if tag['Value'] == TAGVALOR:
+				tag_value = TYPE			# The type on Recommendation to apply
+			elif tag['Value'] in OVERRIDES:
+				tag_value = tag['Value']	# The override Recommendation to apply	
+
+	# Revision sobre los OVERRIDES
+	# TYPE = ['Underprovisioned','Overprovisioned', 'Both']
+	# OVERRIDES = ACOO-OVER, ACOO-UNDER, ACOO-BOTH
+	# instance['finding'] = 'OVER_PROVISIONED'
+	if tag_value[0:4].upper() == instance['finding'][0:4].upper() or tag_value[0:4].upper() == "BOTH":
+		to_do = True
+	else:
+		to_do = False
+
+	if tag_value in OVERRIDES:
+		if tag_value[5:9].upper() == instance['finding'][0:4].upper() or tag_value[5:9].upper()  == "BOTH":
 			to_do = True
-	
+		else:
+			to_do = False
+
 	if to_do:
 		for option in instance['recommendationOptions']:
 			ec2_new_type = option['instanceType']
@@ -89,8 +112,8 @@ def review_compute_optimizer_recos(instance):
 		if response == "":
 			MENSAJE = MENSAJE + "Info:   Instance " + ec2_name + " with no viable options. \n"
 	else:
-		MENSAJE = MENSAJE + "Info:   Instance " + ec2_name + " have a recommendation but not the required TAG\n"
-		print("No se modificó Instancia {} - {} debido a que no tiene el TAG necesario.".format(ec2_id, ec2_name))
+		MENSAJE = MENSAJE + "Info:   Nothing to do for Instance " + ec2_name + "\n"
+		print("No se modificó Instancia {} - {}.".format(ec2_id, ec2_name))
 
 	return cambio
 
@@ -99,10 +122,11 @@ def lambda_handler(event, context):
 	cambios = 0
 	global MENSAJE
 
-	if TYPE == "Both":
-		R_TYPE = ['Underprovisioned','Overprovisioned']
-	else:
-		R_TYPE = [TYPE]
+	#if TYPE == "Both":
+	#	R_TYPE = ['Underprovisioned','Overprovisioned']
+	#else:
+	#	R_TYPE = [TYPE]
+	R_TYPE = ['Underprovisioned','Overprovisioned']
 
 	MENSAJE = ""
 	co_recos = co_client.get_ec2_instance_recommendations(filters=[{'name':'Finding','values':R_TYPE}])

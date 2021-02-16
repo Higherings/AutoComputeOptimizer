@@ -8,7 +8,7 @@ You have to define a TAG to select the EC2 Instances affected by the Automation.
 
 If it's not working on your Region create an Issue and I will fix it.
 
-> Version 2.0.2
+> Version 2.1.0
 
 ### Files:
 - autoComputeOptimizer-template.yml, CloudFormation template to Run in your account, it is already in a public S3 bucket
@@ -33,7 +33,7 @@ https://higher-artifacts.s3.amazonaws.com/solutions/autoComputeOptimizer-templat
 
 - *Time*, specify at what time the changes to the EC2 Instances will occur (downtime requiered) (UTC 24 hours syntax)
 
-- *Recommendation Type*, specify which kind of recommendations to apply: Underprovisioned, Overprovisioned, Both
+- *Default Recommendation Type*, specify which kind of recommendations to apply: Underprovisioned, Overprovisioned, Both
 
 - *Tolerable Risk*, select the maximum tolerable Risk of the recommendation to apply
 
@@ -50,6 +50,8 @@ https://higher-artifacts.s3.amazonaws.com/solutions/autoComputeOptimizer-templat
 - Function DOES NOT modify EC2 Instances of an AutoScaling Group
 
 - You can set a Tag Key and Value to select the group of EC2 Instances to be evaluated
+
+- UPDATE: Now you can override the behaviour per instance with *Selection Tag Values of ACOO-OVER, ACOO-UNDER, ACOO-BOTH
 
 ## To-Do
 - Make a more restrict EC2 and KMS policy for the Lambda

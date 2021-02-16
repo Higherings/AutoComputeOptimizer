@@ -1,11 +1,13 @@
 # igarcia 2020-07
-# Version 2.0.2
+# Version 2.1.0
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
 # Resources to create: Lambda, CloudWatch Event, IAM Role, SNS Topic
 # The AWS Account should be already signed up to AWS Compute Optimizer
 # IMPORTANT: The EC2 instances that you want to affect should endure a restart!
 # You can Schedule when will the restart occur
+# UPDATE
+# Now you can override the behaviour per instance with TAGBUSQUEDA's values of ACOO-OVER, ACOO-UNDER, ACOO-BOTH
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: Template to automate the Compute Optimizer Recommendatios changes
@@ -37,7 +39,7 @@ Metadata:
       pHora:
         default: "Time for the Restart in UTC"
       pType:
-        default: "Type of Recommendations"
+        default: "Default Type of Recommendations"
       pRisk:
         default: "Tolerable Risk"
       pTagBusqueda:
@@ -75,7 +77,7 @@ Parameters: #Default Parameters Values
     ConstraintDescription: "Please set a value between 0 and 5"
   pType:
     Type: String
-    Description: "Recommendations to apply, Underprovisioned and/or Overprovisioned"
+    Description: "Default Recommendations to apply, Underprovisioned and/or Overprovisioned"
     Default: "Underprovisioned"
     AllowedValues: ["Underprovisioned","Overprovisioned","Both"]
     ConstraintDescription: "Set the recommendations to apply, you must choose at least one type."
