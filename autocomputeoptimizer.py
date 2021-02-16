@@ -1,4 +1,4 @@
-# igarcia 2020-07
+# igarcia 2021-02
 # Version 2.1.0
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
