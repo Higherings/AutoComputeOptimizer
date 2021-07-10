@@ -51,7 +51,8 @@ https://higher-artifacts.s3.amazonaws.com/solutions/autoComputeOptimizer-templat
 
 - You can set a Tag Key and Value to select the group of EC2 Instances to be evaluated
 
-- UPDATE: Now you can override the behaviour per instance with *Selection Tag Values of ACOO-OVER, ACOO-UNDER, ACOO-BOTH
+- UPDATE: Now you can override the behaviour per instance with:
+-- Selection Tag Values of ACOO-OVER to apply Oversized recomendations, ACOO-UNDER to apply Undersized recomendations, ACOO-BOTH to apply both recommendations
 
 ## To-Do
 - Make a more restrict EC2 and KMS policy for the Lambda
