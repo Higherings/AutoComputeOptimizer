@@ -70,7 +70,7 @@ Parameters: #Default Parameters Values
     ConstraintDescription: "Please set a time between 0:00 a 23:59"
   pRisk:
     Type: Number
-    Description: "Set the tolerable Risk of the recommendation, 0 Very Low - 5 Very high, Default 2 (Low)"
+    Description: "Set the tolerable Risk of the recommendation, 0 No Risk - 5 Very high, Default 2 (Low)"
     Default: 2
     MaxValue: 5
     MinValue: 0
