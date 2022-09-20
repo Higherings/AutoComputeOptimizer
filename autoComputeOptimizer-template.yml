@@ -11,7 +11,7 @@
 # Now You can specify exceptions of family, size, or type
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: Template to automate the Compute Optimizer Recommendatios changes
+Description: Template to automate the Compute Optimizer Recommendatios changes - v2.2.0
 
 Metadata:
   AWS::CloudFormation::Interface:
