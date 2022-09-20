@@ -1,5 +1,5 @@
-# igarcia 2021-02
-# Version 2.1.0
+# igarcia 2022-09
+# Version 2.2.0
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
 # Resources to create: Lambda, CloudWatch Event, IAM Role, SNS Topic
@@ -8,6 +8,7 @@
 # You can Schedule when will the restart occur
 # UPDATE
 # Now you can override the behaviour per instance with TAGBUSQUEDA's values of ACOO-OVER, ACOO-UNDER, ACOO-BOTH
+# Now You can specify exceptions of family, size, or type
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: Template to automate the Compute Optimizer Recommendatios changes
@@ -25,6 +26,7 @@ Metadata:
           default: "Compute Optimizer Auto-Changes Setup"
         Parameters:
           - pType
+          - pExceptions
           - pRisk
           - pDia
           - pHora
@@ -40,6 +42,8 @@ Metadata:
         default: "Time for the Restart in UTC"
       pType:
         default: "Default Type of Recommendations"
+      pExceptions:
+        default: "EC2 Instance type Exceptions"
       pRisk:
         default: "Tolerable Risk"
       pTagBusqueda:
@@ -49,7 +53,7 @@ Metadata:
       pCorreo:
         default: "E-Mail Address to receive Notifications about changes applied. Leave default value for NO Notifications."
 
-Parameters: #Default Parameters Values
+Parameters:
   TemplateAmbiente:
     Type: String
     Description: "Tag Env to set on CloudFormation resources"
@@ -81,6 +85,10 @@ Parameters: #Default Parameters Values
     Default: "Underprovisioned"
     AllowedValues: ["Underprovisioned","Overprovisioned","Both"]
     ConstraintDescription: "Set the recommendations to apply, you must choose at least one type."
+  pExceptions:
+    Type: String
+    Description: "EC2 Instance Type Exceptions, a list of types, families or sizes. Ex: t2.micro, t3, small"
+    Default: "nano"
   pTagBusqueda:
     Type: String
     Description: "Tag Key that identify EC2 Instances for automation of Compute Optimizer"
@@ -207,6 +215,7 @@ Resources:
           AMBIENTE: !Ref TemplateAmbiente
           RISK: !Ref pRisk
           TYPE: !Ref pType
+          EXCEPTIONS: !Ref pExceptions
           TAGBUSQUEDA: !Ref pTagBusqueda
           TAGVALOR: !Ref pTagValor
           TOPIC: !Ref TemplateSNS
@@ -245,10 +254,13 @@ Resources:
 Outputs: #Outputs of the Template
   FrequencyAutoCO:
     Description: Frequency for Auto implement Compute Optimizer recommendations
-    Value: !Join [ "", [ "Every ", !Ref pDia, " at ", !Ref pHora, " UTC" ] ]
+    Value: !Join [ " ", [ "Every", !Ref pDia, "at", !Ref pHora, "UTC" ] ]
   Recommendations:
     Description: Type of recommendatios to implement automatically
     Value: !Ref pType
+  Exceptions:
+    Description: EC2 Instance types forbidden to be used
+    Value: !Ref pExceptions
   TolerableRisk:
     Description: Tolerable Risk for the Recommendations (0 = very low - 5 = very high)
     Value: !Ref pRisk

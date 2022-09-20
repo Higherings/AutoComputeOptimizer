@@ -1,5 +1,5 @@
-# igarcia 2021-02
-# Version 2.1.0
+# igarcia 2022-09
+# Version 2.2.0
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
@@ -8,6 +8,7 @@
 
 # UPDATE
 # Now you can override the behaviour per instance with TAGBUSQUEDA's values of ACOO-OVER, ACOO-UNDER, ACOO-BOTH
+# Now You can specify exceptions of family, size, or type
 
 import os
 import json
@@ -21,6 +22,8 @@ TOPIC = os.environ['TOPIC']
 CORREO = os.environ['CORREO']
 MENSAJE = ""
 OVERRIDES = ("ACOO-OVER","ACOO-UNDER","ACOO-BOTH")
+EXCEPTIONS = os.getenv('EXCEPTIONS', default='nano').split(',')
+EXCEPTIONS = [ exception.strip().lower() for exception in EXCEPTIONS] # To trimm and lowercase
 risk_text = {"0":"No Risk", "1":"Very Low Risk", "2":"Low Risk", "3":"Medium Risk", "4":"High Risk", "5":"Very High Risk"}
 
 ec2 = boto3.resource('ec2')
@@ -64,6 +67,12 @@ def review_compute_optimizer_recos(instance):
 	if to_do:
 		for option in instance['recommendationOptions']:
 			ec2_new_type = option['instanceType']
+			if ec2_new_type in EXCEPTIONS:
+				continue
+			else:
+				for part in ec2_new_type.split('.'):
+					if part in EXCEPTIONS:
+						ec2_prev_type = ec2_new_type # Para prevenir el cambio de tipo de Instancia
 			if (int(option['performanceRisk']) <= int(RISK)) and (ec2_prev_type != ec2_new_type): # El riesgo debe ser aceptable y el tipo de Instancia debe cambiar
 			    #Hacer Cambio Tipo de Instancia
 				if ec2_instance.state['Name'] == 'stopped':
