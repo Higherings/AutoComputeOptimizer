@@ -39,6 +39,8 @@ https://higher-artifacts.s3.amazonaws.com/solutions/autoComputeOptimizer-templat
 
 - *Tolerable Risk*, select the maximum tolerable Risk of the recommendation to apply
 
+- *Exceptions*, you can add instance types, families or sizes to NOT use, for example: t2.nano, small, t3 
+
 - *Email Address*, e-mail address to receive notifications of the implemmented recommendations
 
 `If you edit the template remember to use LF end of lines.`
