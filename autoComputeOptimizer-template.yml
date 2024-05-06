@@ -1,5 +1,5 @@
-# igarcia 2022-09
-# Version 2.2.0
+# igarcia 2024-05
+# Version 2.3.1
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
 # Resources to create: Lambda, CloudWatch Event, IAM Role, SNS Topic
@@ -11,7 +11,7 @@
 # Now You can specify exceptions of family, size, or type
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: Template to automate the Compute Optimizer Recommendatios changes - v2.2.0
+Description: Template to automate the Compute Optimizer Recommendatios changes - v2.3.1
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -224,7 +224,7 @@ Resources:
       Role: !GetAtt TemplateRole.Arn
       Timeout: 800
       Handler: autocomputeoptimizer.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.12
       MemorySize: 256
       Tags:
         -
