@@ -1,5 +1,5 @@
-# igarcia 2024-05
-# Version 2.3.1
+# igarcia 2026-07
+# Version 2.3.2
 # Automation for Compute Optimizer Recommendations
 # Create a Scheduled Lambda with CloudWatch Event to implements Compute Optimizer Recommendations changes on EC2 Instances
 # Resources to create: Lambda, CloudWatch Event, IAM Role, SNS Topic
@@ -224,7 +224,7 @@ Resources:
       Role: !GetAtt TemplateRole.Arn
       Timeout: 800
       Handler: autocomputeoptimizer.lambda_handler
-      Runtime: python3.12
+      Runtime: python3.14
       MemorySize: 256
       Tags:
         -
