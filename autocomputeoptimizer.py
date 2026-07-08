@@ -1,10 +1,13 @@
-# igarcia 2024-05
-# Version 2.3.1
+# igarcia 2026-07
+# Version 2.3.2
 # Automation for Compute Optimizer Recommendations
 # It will change the EC2 Instance Type to a Recommendation of the AWS Compute Optimizer Service and send an email about it
 # It won't do anything to AutoScaling Group's Instances
 # You can set a TAG Value for the instances that this Lambda can manage
 # IMPORTANT: your EC2 instance should endure a restart!
+
+# FIXED
+# Syntax identation issue dectected on Python 3.14
 
 # UPDATE
 # Now you can override the behaviour per instance with TAGBUSQUEDA's values of ACOO-OVER, ACOO-UNDER, ACOO-BOTH
@@ -66,7 +69,7 @@ def review_compute_optimizer_recos(instance):
 
 	if to_do:
 		for option in instance['recommendationOptions']:
-            ec2_prev_type = ec2_instance.instance_type
+			ec2_prev_type = ec2_instance.instance_type
 			ec2_new_type = option['instanceType']
 			if ec2_new_type in EXCEPTIONS:
 				continue
